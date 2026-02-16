@@ -71,16 +71,44 @@ const VizIngredient: React.FC<{ node: Ingredient }> = ({ node }) => {
     );
 };
 
-const VizOperation: React.FC<{ node: Operation }> = ({ node }) => (
-    <div className="viz-node viz-operation-wrapper">
-        <div className="viz-operation-label">
-            {formatOperation(node.name, node.args)}
+// Flatten nested operation chain into [target, op1, op2, ...]
+function flattenOpChain(node: Operation): { target: Expression | undefined; ops: { name: string; args: (string | number)[]; comment?: string }[] } {
+    const ops: { name: string; args: (string | number)[]; comment?: string }[] = [];
+    let current: Expression | undefined = node;
+
+    while (current && current.type === 'OPERATION') {
+        const op = current as Operation;
+        ops.unshift({ name: op.name, args: op.args, comment: op.comment });
+        current = op.target;
+    }
+
+    return { target: current, ops };
+}
+
+const VizOperation: React.FC<{ node: Operation }> = ({ node }) => {
+    const { target, ops } = flattenOpChain(node);
+
+    return (
+        <div className="viz-node" style={{ flexDirection: 'column', gap: '0', alignItems: 'center' }}>
+            {/* Render the base target (ingredient/group) */}
+            {target && <VizNode node={target} />}
+
+            {/* Render each operation as an arrow step */}
+            {ops.map((op, i) => (
+                <React.Fragment key={i}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <div style={{ width: '2px', height: '10px', backgroundColor: '#e0af68' }} />
+                        <div style={{ fontSize: '0.7rem', color: '#e0af68' }}>▼</div>
+                    </div>
+                    <div className="viz-operation-label">
+                        {formatOperation(op.name, op.args)}
+                    </div>
+                    {op.comment && <div className="viz-comment">{op.comment}</div>}
+                </React.Fragment>
+            ))}
         </div>
-        {/* Target might be implicit/undefined in some cases */}
-        {node.target && <VizNode node={node.target} />}
-        {node.comment && <div className="viz-comment">{node.comment}</div>}
-    </div>
-);
+    );
+};
 
 const VizGroup: React.FC<{ node: Group }> = ({ node }) => (
     <div className="viz-node viz-group">
@@ -113,12 +141,24 @@ const VizBinary: React.FC<{ node: BinaryOp }> = ({ node }) => {
     }
 
     if (isAdd) {
-        // Layout logic: if deep, horizontal might be better?
-        // Defaulting to vertical for ingredients list visual
+        // A ++ B means: Make A first, then add B into it (temporal order)
         return (
-            <div className="viz-node" style={{ flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
+            <div className="viz-node" style={{ flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
                 <VizNode node={node.left} />
-                <div className="viz-operator" style={{ fontSize: '1rem', padding: '0 4px', minWidth: 'auto', borderRadius: '50%', color: 'var(--text-color)', borderColor: 'var(--border-color)', opacity: 0.7 }}>+</div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                    <div style={{ width: '2px', height: '12px', backgroundColor: '#9ece6a' }} />
+                    <div style={{
+                        fontSize: '0.7rem',
+                        padding: '1px 6px',
+                        backgroundColor: '#9ece6a',
+                        color: '#1a1b26',
+                        borderRadius: '8px',
+                        fontWeight: 'bold'
+                    }}>
+                        ＋投入
+                    </div>
+                    <div style={{ width: '2px', height: '12px', backgroundColor: '#9ece6a' }} />
+                </div>
                 <VizNode node={node.right} />
             </div>
         );

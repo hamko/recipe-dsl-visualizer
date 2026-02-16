@@ -1,3 +1,4 @@
+
 import {
     Expression, Ingredient, Operation, Group, BinaryOp, Sequence,
     Recipe
@@ -136,12 +137,12 @@ export class Parser {
 
             // Consume adjacent args
             while (this.pos < this.tokens.length) {
-                const next = this.peek();
+                const nextArg = this.peek(); // conflict with outer next
                 // Check adjacency
-                if (next.start === lastTokenEnd) {
+                if (nextArg.start === lastTokenEnd) {
                     // It is attached!
                     // Allowed arg types are loose: ID, NUMBER, MINUS, BRACE_CONTENT
-                    if ([TokenType.ID, TokenType.NUMBER, TokenType.MINUS, TokenType.BRACE_CONTENT].includes(next.type)) {
+                    if ([TokenType.ID, TokenType.NUMBER, TokenType.MINUS, TokenType.BRACE_CONTENT].includes(nextArg.type)) {
                         const argTok = this.consume();
                         args.push(argTok.value);
                         lastTokenEnd = argTok.start + argTok.value.length;
@@ -178,6 +179,7 @@ export class Parser {
             return { type: 'GROUP', content: expr } as Group;
         }
 
+
         if (token.type === TokenType.ID) {
             const nameTok = this.consume(TokenType.ID);
             let qty: number | undefined;
@@ -187,13 +189,39 @@ export class Parser {
             // check for attached number (Quantity)
             if (this.pos < this.tokens.length && this.peek().type === TokenType.NUMBER && this.peek().start === lastEnd) {
                 const numTok = this.consume(TokenType.NUMBER);
-                qty = parseFloat(numTok.value);
+
+                // Handle fraction? 1/2
+                if (numTok.value.includes('/')) {
+                    const [n, d] = numTok.value.split('/');
+                    qty = parseFloat(n) / parseFloat(d);
+                } else {
+                    qty = parseFloat(numTok.value);
+                }
                 lastEnd = numTok.start + numTok.value.length;
 
                 // check for attached unit (ID)
                 if (this.pos < this.tokens.length && this.peek().type === TokenType.ID && this.peek().start === lastEnd) {
-                    unit = this.consume(TokenType.ID).value;
-                    lastEnd += unit.length;
+                    const potentialUnit = this.peek();
+                    const nextNext = this.pos + 1 < this.tokens.length ? this.tokens[this.pos + 1] : null;
+
+                    // Improved Unit Detection Logic
+                    // 1. Whitelist of known units
+                    const knownUnits = [
+                        'g', 'mg', 'ml', 'cc', 'kg', 'l', 'cm',
+                        '個', '本', '枚', '束', 'かけ', '片', '袋', '缶', 'カップ', '合', '升', '匹', '尾', '切れ', '玉', '房', '株', '腹', 'つまみ',
+                        '少々', '適量', '大さじ', '小さじ'
+                    ];
+                    const isKnownUnit = knownUnits.includes(potentialUnit.value);
+
+                    // 2. Heuristic: If followed by a NUMBER, it is likely a new Ingredient (Name + Qty), NOT a unit.
+                    // Unless it's a known unit (e.g. "1個" "1個" -> unit is "個").
+                    const followedByNumber = nextNext && nextNext.type === TokenType.NUMBER;
+
+
+                    if (isKnownUnit || !followedByNumber) {
+                        unit = this.consume(TokenType.ID).value;
+                        lastEnd += unit.length;
+                    }
                 }
             }
 

@@ -12,6 +12,9 @@ import { OperationsView } from './components/OperationsView';
 
 import { AIGenerator } from './components/AIGenerator';
 
+
+import { Footer } from './components/Footer';
+
 function App() {
     const [recipes, setRecipes] = useState<RecipeRow[]>([]);
     const [selectedRecipe, setSelectedRecipe] = useState<RecipeRow | null>(null);
@@ -122,11 +125,12 @@ function App() {
                 </div>
 
 
+
                 <div style={{ padding: '0 0.5rem', marginBottom: '0.5rem', color: '#565f89', fontSize: '0.8rem' }}>
                     {filteredRecipes.length} recipes found
                 </div>
-                <ul>
-                    {filteredRecipes.slice(0, 25).map((r, i) => (
+                <ul style={{ flex: 1, overflowY: 'auto' }}>
+                    {filteredRecipes.map((r, i) => (
                         <li
                             key={i}
                             className={selectedRecipe === r ? 'active' : ''}
@@ -136,11 +140,6 @@ function App() {
                             {r.title}
                         </li>
                     ))}
-                    {filteredRecipes.length > 25 && (
-                        <li style={{ fontStyle: 'italic', opacity: 0.7, cursor: 'default', color: '#565f89', padding: '0.5rem' }}>
-                            (あと {filteredRecipes.length - 25} 件省略されています)
-                        </li>
-                    )}
                 </ul>
             </div>
             <div className="main-content">
@@ -150,15 +149,19 @@ function App() {
                         {selectedRecipe?.comment && <span style={{ fontSize: '0.8rem', fontWeight: 'normal', marginLeft: '1rem', color: '#9ece6a' }}>{selectedRecipe.comment}</span>}
                     </h2>
 
-                    <div style={{ marginBottom: '1rem' }}>
-                        <button
-                            onClick={() => setShowAI(!showAI)}
-                            style={{ fontSize: '0.8rem', padding: '0.2rem 0.5rem', backgroundColor: '#414868', color: '#c0caf5' }}
-                        >
-                            {showAI ? 'Hide AI Generator' : 'Show AI Generator'}
-                        </button>
-                        {showAI && <AIGenerator onGenerate={(dsl: string) => setInputText(dsl)} />}
-                    </div>
+
+                    {/* Hide AI Generator on GitHub Pages */
+                        !window.location.hostname.includes('github.io') && (
+                            <div style={{ marginBottom: '1rem' }}>
+                                <button
+                                    onClick={() => setShowAI(!showAI)}
+                                    style={{ fontSize: '0.8rem', padding: '0.2rem 0.5rem', backgroundColor: '#414868', color: '#c0caf5' }}
+                                >
+                                    {showAI ? 'AIジェネレーターを隠す' : 'AIジェネレーターを表示'}
+                                </button>
+                                {showAI && <AIGenerator onGenerate={(dsl: string) => setInputText(dsl)} />}
+                            </div>
+                        )}
 
                     <textarea
                         value={inputText}
@@ -192,8 +195,10 @@ function App() {
                         ast ? <RecipeVisualizer data={ast} /> : <div style={{ color: '#565f89' }}>Visualizer output will appear here...</div>
                     )}
                     {activeTab === 'ingredients' && ast && <IngredientsView ast={ast} />}
+
                     {activeTab === 'operations' && ast && <OperationsView ast={ast} />}
                 </div>
+                <Footer />
             </div>
         </div>
     );
