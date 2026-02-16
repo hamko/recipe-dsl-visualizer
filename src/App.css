@@ -57,12 +57,12 @@
 }
 
 .editor-section {
-    /* height: 30%; Fixed height or flex? */
-    flex: 0 0 30%;
+    /* height controlled dynamically via inline style */
     padding: 1rem;
     border-bottom: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 .editor-section h2 {

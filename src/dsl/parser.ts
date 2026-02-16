@@ -134,15 +134,19 @@ export class Parser {
 
             const args: (string | number)[] = [];
             let lastTokenEnd = nameToken.start + nameToken.value.length;
+            let opComment: string | undefined;
 
             // Consume adjacent args
             while (this.pos < this.tokens.length) {
-                const nextArg = this.peek(); // conflict with outer next
+                const nextArg = this.peek();
                 // Check adjacency
                 if (nextArg.start === lastTokenEnd) {
-                    // It is attached!
-                    // Allowed arg types are loose: ID, NUMBER, MINUS, BRACE_CONTENT
-                    if ([TokenType.ID, TokenType.NUMBER, TokenType.MINUS, TokenType.BRACE_CONTENT].includes(nextArg.type)) {
+                    if (nextArg.type === TokenType.BRACE_CONTENT) {
+                        // {沸騰させない} -> operation comment/caution, not an arg
+                        const commentTok = this.consume();
+                        opComment = commentTok.value;
+                        lastTokenEnd = commentTok.start + commentTok.value.length + 2; // +2 for { }
+                    } else if ([TokenType.ID, TokenType.NUMBER, TokenType.MINUS].includes(nextArg.type)) {
                         const argTok = this.consume();
                         args.push(argTok.value);
                         lastTokenEnd = argTok.start + argTok.value.length;
@@ -158,6 +162,7 @@ export class Parser {
                 type: 'OPERATION',
                 name: nameToken.value,
                 args,
+                comment: opComment,
                 target: expr
             } as Operation;
         }

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './App.css';
 import { rawRecipesMarkdown } from './data/rawRecipes';
 import { parseMarkdownTable, RecipeRow } from './utils/mdParser';
@@ -25,9 +25,40 @@ function App() {
     const [activeTab, setActiveTab] = useState<'visualizer' | 'ingredients' | 'operations'>('visualizer');
     const [showAI, setShowAI] = useState(false);
 
-
     const [filterText, setFilterText] = useState('');
     const [minRating, setMinRating] = useState(0);
+
+    // Resizable editor/visualizer split
+    const [editorPercent, setEditorPercent] = useState(30);
+    const mainRef = useRef<HTMLDivElement>(null);
+    const isDragging = useRef(false);
+
+    const handleMouseDown = useCallback((e: React.MouseEvent) => {
+        e.preventDefault();
+        isDragging.current = true;
+        document.body.style.cursor = 'row-resize';
+        document.body.style.userSelect = 'none';
+    }, []);
+
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!isDragging.current || !mainRef.current) return;
+            const rect = mainRef.current.getBoundingClientRect();
+            const pct = ((e.clientY - rect.top) / rect.height) * 100;
+            setEditorPercent(Math.min(70, Math.max(15, pct)));
+        };
+        const handleMouseUp = () => {
+            isDragging.current = false;
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        };
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, []);
 
     // Heuristic rating
     const getRating = (comment: string): number => {
@@ -142,8 +173,8 @@ function App() {
                     ))}
                 </ul>
             </div>
-            <div className="main-content">
-                <div className="editor-section">
+            <div className="main-content" ref={mainRef}>
+                <div className="editor-section" style={{ flex: `0 0 ${editorPercent}%` }}>
                     <h2>
                         {selectedRecipe?.title || 'Editor'}
                         {selectedRecipe?.comment && <span style={{ fontSize: '0.8rem', fontWeight: 'normal', marginLeft: '1rem', color: '#9ece6a' }}>{selectedRecipe.comment}</span>}
@@ -170,6 +201,24 @@ function App() {
                         spellCheck={false}
                     />
                     {error && <div className="error-message">Error: {error}</div>}
+                </div>
+
+                {/* Drag handle */}
+                <div
+                    onMouseDown={handleMouseDown}
+                    style={{
+                        height: '6px',
+                        cursor: 'row-resize',
+                        backgroundColor: '#24283b',
+                        borderTop: '1px solid #414868',
+                        borderBottom: '1px solid #414868',
+                        flexShrink: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}
+                >
+                    <div style={{ width: '40px', height: '2px', backgroundColor: '#565f89', borderRadius: '1px' }} />
                 </div>
 
                 <div className="tab-header" style={{ display: 'flex', borderBottom: '1px solid #414868', marginBottom: '1rem' }}>

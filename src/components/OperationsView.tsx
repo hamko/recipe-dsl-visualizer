@@ -41,7 +41,7 @@ export const OperationsView: React.FC<{ ast: Expression }> = ({ ast }) => {
             <ul style={{ listStyle: 'none', padding: 0 }}>
                 {ops.map((op, i) => {
                     const label = formatOperation(op.name, op.args);
-                    const rawArgs = `@${op.name}` + (op.args.length ? ` args:[${op.args.join(', ')}]` : '');
+                    const rawArgs = `@${op.name}` + (op.args.length ? op.args.join('') : '') + (op.comment ? `{${op.comment}}` : '');
 
                     return (
                         <li key={i} style={{
@@ -49,14 +49,18 @@ export const OperationsView: React.FC<{ ast: Expression }> = ({ ast }) => {
                             padding: '1rem',
                             marginBottom: '0.5rem',
                             borderRadius: '8px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between'
                         }}>
-                            <span style={{ fontSize: '1.1rem' }}>{i + 1}. {label}</span>
-                            <span style={{ fontSize: '0.8rem', opacity: 0.5, fontFamily: 'monospace' }}>
-                                {rawArgs}
-                            </span>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <span style={{ fontSize: '1.1rem' }}>{i + 1}. {label}</span>
+                                <span style={{ fontSize: '0.8rem', opacity: 0.5, fontFamily: 'monospace' }}>
+                                    {rawArgs}
+                                </span>
+                            </div>
+                            {op.comment && (
+                                <div style={{ fontSize: '0.85rem', color: '#e0af68', marginTop: '0.3rem', fontStyle: 'italic' }}>
+                                    ⚠ {op.comment}
+                                </div>
+                            )}
                         </li>
                     );
                 })}

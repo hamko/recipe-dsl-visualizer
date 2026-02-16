@@ -111,19 +111,40 @@ const VizOperation: React.FC<{ node: Operation }> = ({ node }) => {
 };
 
 const VizGroup: React.FC<{ node: Group }> = ({ node }) => (
-    <div className="viz-node viz-group">
+    <div className="viz-node">
         <VizNode node={node.content} />
     </div>
 );
 
-// Sequence (Implicit space or ;)
-const VizSequence: React.FC<{ node: Sequence }> = ({ node }) => (
-    <div className="viz-node viz-sequence">
-        {node.children.map((child, i) => (
-            <VizNode key={i} node={child} />
-        ))}
-    </div>
-);
+// Sequence (semicolon-separated phases)
+const VizSequence: React.FC<{ node: Sequence }> = ({ node }) => {
+    // Single child: no wrapping
+    if (node.children.length <= 1) {
+        return (
+            <div className="viz-node">
+                {node.children.map((child, i) => (
+                    <VizNode key={i} node={child} />
+                ))}
+            </div>
+        );
+    }
+
+    // Multiple children: wrap entire group in one dashed border
+    return (
+        <div className="viz-node" style={{
+            border: '2px dashed #414868',
+            borderRadius: '12px',
+            padding: '1rem',
+            backgroundColor: 'rgba(36, 40, 59, 0.3)',
+        }}>
+            <div className="viz-sequence">
+                {node.children.map((child, i) => (
+                    <VizNode key={i} node={child} />
+                ))}
+            </div>
+        </div>
+    );
+};
 
 const VizBinary: React.FC<{ node: BinaryOp }> = ({ node }) => {
     const isFlow = node.operator === '->';

@@ -3,13 +3,19 @@
 
 <img src="src/assets/icon.png" alt="CookFlow DSL Icon" width="100" />
 
+🌐 **[ライブデモ → https://hamko.github.io/recipe-dsl-visualizer/](https://hamko.github.io/recipe-dsl-visualizer/)**
+
 **CookFlow DSL** は、テキストベースの料理レシピ言語（DSL）を解析し、フローチャートとして可視化するWebアプリケーションです。
+
+<img src="src/assets/screenshot.png" alt="CookFlow DSL Screenshot" width="800" />
 
 ## なぜ作ったか
 
-料理レシピは本質的に「有向非巡回グラフ (DAG)」です。材料を準備し、操作を加え、合流させ、また操作を加える。この構造をテキストで簡潔に表現し、かつ視覚的に確認できるツールがあれば、レシピの理解・共有・改善がしやすくなると考えました。
+理由はありません。
 
-元々は [PukiWiki上のレシピページ](https://home.wakatabe.com/ryo/wiki/index.php?%E3%83%AC%E3%82%B7%E3%83%94) でレシピを管理していましたが、テキストだけでは調理の流れが分かりにくいため、このDSLと可視化ツールを開発しました。
+元々は [PukiWiki上のレシピページ](https://home.wakatabe.com/ryo/wiki/index.php?%E3%83%AC%E3%82%B7%E3%83%94) で自作ゆるふわ DSL を使ってレシピを管理していました。もともと DSL を作った理由は、世の中のレシピが意味もなくビジュアライズされていて読みにくいため、記号化して日常で使いやすくするためでした。実際、僕はこの記号化されたレシピを日常的に参照して料理を作ってきました。
+
+つまり、ビジュアライズする必要など一切ありません。むしろこのビジュアライズソフトウェアは、管理すべきではないソフトウェアが増えるという点で害しか生みません。AIコーディングエージェント [Antigravity](https://blog.google/technology/google-deepmind/antigravity-ai-coding-agent/) を使えば簡単にWebアプリが作れるようになったので、特に意味もなくビジュアライザーにしてみました。
 
 ## 機能
 
