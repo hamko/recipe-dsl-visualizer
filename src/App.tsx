@@ -120,8 +120,13 @@ function App() {
                         </button>
                     ))}
                 </div>
+
+                <div style={{ padding: '0 0.5rem', marginBottom: '0.5rem', color: '#565f89', fontSize: '0.8rem' }}>
+                    {filteredRecipes.length} recipes found
+                    {filteredRecipes.length > 50 && ` (showing first 50)`}
+                </div>
                 <ul>
-                    {filteredRecipes.map((r, i) => (
+                    {filteredRecipes.slice(0, 50).map((r, i) => (
                         <li
                             key={i}
                             className={selectedRecipe === r ? 'active' : ''}
